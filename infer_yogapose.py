@@ -7,7 +7,7 @@ import cv2
 import numpy as np
 from ultralytics import YOLO
 
-yolo_model = YOLO("ViTPose/demo/best_body.pt")
+# yolo_model = YOLO("ViTPose/demo/best_body.pt")
 
 
 import sys
@@ -26,7 +26,7 @@ def main():
     parser = ArgumentParser()
     # parser.add_argument('pose_config', help='Config file for pose')
     # parser.add_argument('pose_checkpoint', help='Checkpoint file for pose',default='./home/gunmay/VitPose-s_RePoGen.pth')
-    parser.add_argument('--video-path', type=str, help='Video path',default='yogapose/Yoga for all A Comprehensive Collection of Yoga Images and Videos dataset(1)/Yoga for all A Comprehensive Collection of Yoga Images and Videos dataset/Yoga Postures Dataset/Videos/Ardhakati Chakrasana/Ardhakati Chakrasana Right Steps/Ardhakati Chakrasana Right Step Angle 1-converted.mp4')
+    parser.add_argument('--video-path', type=str, help='Video path',default='/home/uas/trauma/yogapose/Yoga for all A Comprehensive Collection of Yoga Images and Videos dataset(1)/Yoga for all A Comprehensive Collection of Yoga Images and Videos dataset/Yoga Postures Dataset/Videos/Anantasana/Anantasana Right Steps/Anantasana Right Step Angle 1-converted.mp4')
     parser.add_argument(
         '--show',
         action='store_true',
@@ -56,8 +56,7 @@ def main():
 
     assert args.show or (args.out_video_root != '')
     # build the pose model from a config file and a checkpoint file
-    pose_model = init_pose_model(
-       '/home/uas/trauma/ViTPose/configs/body/2d_kpt_sview_rgb_img/topdown_heatmap/coco/ViTPose_small_coco_256x192.py', 'ViTPose/demo/vitpose_small.pth', device='cuda:0')
+    pose_model = init_pose_model('/home/uas/trauma/ViTPose/configs/body/2d_kpt_sview_rgb_img/topdown_heatmap/coco/ViTPose_small_coco_256x192.py', '/home/uas/trauma/ViTPose/demo/vitpose_small.pth', device='cuda:0')
     # print(pose_model)
 
     dataset = pose_model.cfg.data['test']['type']
