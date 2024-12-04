@@ -17,29 +17,15 @@ from mmpose.datasets import DatasetInfo
 
 
 def main(sample_video_path=None,sample_video_folder_path=None,actual_video_dir_path=None):
-    cap = cv2.VideoCapture(sample_video_path)
-
-    fps = cap.get(cv2.CAP_PROP_FPS)
-    size = (int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)),int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
     parser = ArgumentParser()
+    parser.add_argument('--video-path', type=str, help='Video path',default='/home/uas/trauma/yogapose/Yoga for all A Comprehensive Collection of Yoga Images and Videos dataset(1)/Yoga for all A Comprehensive Collection of Yoga Images and Videos dataset/Yoga Postures Dataset/Videos/Anantasana/Anantasana Right Steps/Anantasana Right Step Angle 1-converted.mp4')
 
-    parser.add_argument('--video-path', type=str, help='Video path',default='yogapose/Yoga for all A Comprehensive Collection of Yoga Images and Videos dataset(1)/Yoga for all A Comprehensive Collection of Yoga Images and Videos dataset/Yoga Postures Dataset/Videos/Ardhakati Chakrasana/Ardhakati Chakrasana Right Steps/Ardhakati Chakrasana Right Step Angle 1-converted.mp4')
 
-
-    parser.add_argument(
-        '--show',
-        action='store_true',
-        default=True,
-        help='whether to show visualizations.')
-    
     parser.add_argument(
         '--out-video-root',
         default='sample',
         help='Root of the output video file. '
         'Default not saving the visualization video.')
-    
-    parser.add_argument(
-        '--device', default='cuda:0', help='Device used for inference')
     
     parser.add_argument(
         '--kpt-thr', type=float, default=0.3, help='Keypoint score threshold')
@@ -57,20 +43,6 @@ def main(sample_video_path=None,sample_video_folder_path=None,actual_video_dir_p
         help='Link thickness for visualization')
 
     args = parser.parse_args()
-    assert args.show or (args.out_video_root != '')
-
-    if args.out_video_root == '':
-        save_out_video = False
-    else:
-        os.makedirs(args.out_video_root, exist_ok=True)
-        save_out_video = True
-
-    if save_out_video:
-        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-        videoWriter = cv2.VideoWriter(
-            os.path.join(args.out_video_root,
-                         f'vis_{os.path.basename(args.video_path)}'), fourcc,
-            fps, size)
 
 
     yolo_model = YOLO("/home/uas/trauma/ViTPose/demo/best_body.pt")
@@ -95,6 +67,10 @@ def main(sample_video_path=None,sample_video_folder_path=None,actual_video_dir_p
     """ CASE 1 """
 
     if sample_video_path is not None:
+        cap = cv2.VideoCapture(args.video_path)
+        fps = cap.get(cv2.CAP_PROP_FPS)
+        print(fps)
+        size = (int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)),int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
         tracker = None
         bbox = None
         while (cap.isOpened()):
@@ -103,6 +79,7 @@ def main(sample_video_path=None,sample_video_folder_path=None,actual_video_dir_p
                 break
 
             yolo_results = yolo_model(img,stream = True)
+            # print("hahaha")
 
             # person_results = [{'bbox': np.array([0, 0, size[0], size[1]])}]
 
@@ -131,10 +108,10 @@ def main(sample_video_path=None,sample_video_folder_path=None,actual_video_dir_p
                 else:
                     # Tracker failed, reset
                     bbox = None
-                    person_results = [{'bbox': np.array([0, 0, img.shape[1], img.shape[0]])}]
+                    person_results = [{'bbox': np.array([0, 0, size[0], img.size[1]])}]
             else:
                 # No tracker or detection failed, use the full frame
-                person_results = [{'bbox': np.array([0, 0, img.shape[1], img.shape[0]])}]
+                person_results = [{'bbox': np.array([0, 0, size[0], img.size[1]])}]
 
             # print(person_results)
             # sys.exit()
@@ -153,7 +130,7 @@ def main(sample_video_path=None,sample_video_folder_path=None,actual_video_dir_p
             lleg=[pose_results[0]['keypoints'][11][0:2],pose_results[0]['keypoints'][13][0:2],pose_results[0]['keypoints'][15][0:2]]
             rleg=[pose_results[0]['keypoints'][12][0:2],pose_results[0]['keypoints'][14][0:2],pose_results[0]['keypoints'][16][0:2]]
             keypoints = [larm, rarm, lleg, rleg]
-
+            
             vis_img = vis_pose_result(
                 pose_model,
                 img,
@@ -164,34 +141,15 @@ def main(sample_video_path=None,sample_video_folder_path=None,actual_video_dir_p
                 dataset_info=dataset_info,
                 kpt_score_thr=args.kpt_thr,
                 show=False)
-            
-            vis_img = vis_pose_result(
-            pose_model,
-            img,
-            pose_results,
-            radius=args.radius,
-            thickness=args.thickness,
-            dataset=dataset,
-            dataset_info=dataset_info,
-            kpt_score_thr=args.kpt_thr,
-            show=False)
+        
 
             if True:
                 show=cv2.resize(vis_img,(900,900))
                 cv2.imshow('Image', show)
 
-            if save_out_video:
-                videoWriter.write(vis_img)
-
             if True and cv2.waitKey(1) & 0xFF == ord('q'):
                 break
-            cap.release()
 
-        if save_out_video:
-            videoWriter.release()
-            
-        if args.show:
-            cv2.destroyAllWindows()
 
 if __name__ == "__main__":
     sample_video_path = "yogapose/Yoga for all A Comprehensive Collection of Yoga Images and Videos dataset(1)/Yoga for all A Comprehensive Collection of Yoga Images and Videos dataset/Yoga Postures Dataset/Videos/Ardhakati Chakrasana/Ardhakati Chakrasana Right Steps/Ardhakati Chakrasana Right Step Angle 1-converted.mp4"
